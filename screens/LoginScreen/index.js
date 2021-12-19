@@ -80,7 +80,7 @@ const SignInScreen = ({navigation}) => {
 
       <StatusBar backgroundColor="white" barStyle="dark-content" />
 
-      <Animatable.View animation="fadeInUpBig" style={styles.footer}>
+      <Animatable.View animation="fadeInUpBig" duration={2000} style={styles.footer}>
         <Text
           style={{
             fontSize: 28,

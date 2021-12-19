@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   ToastAndroid,
+  Alert
 } from 'react-native';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -87,10 +88,15 @@ const ModalPassword = ({
                   style={styles.otpView}
                   codeInputFieldStyle={styles.underlineStyleBase}
                   onCodeFilled={value => {
-                    LoginApiCall({email: useremail, password: value});
+                    if(value!=='1234'){
+                      Alert.alert('Invalid PassCode!','Please enter Valid PassCode')
+                    }else{
+                      LoginApiCall({email: useremail, password: value});
 
-                    setShowPassCode(false);
-                    navigation.navigate('Home');
+                      setShowPassCode(false);
+                      navigation.navigate('Home');
+                    }
+                   
                   }}
                 />
                 <Text

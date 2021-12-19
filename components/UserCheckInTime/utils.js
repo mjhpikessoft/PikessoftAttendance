@@ -4,20 +4,19 @@ import {setData} from '../AsyncStorage';
 import {getToken} from '../AsyncStorage';
 import CurrentDate from '../CurrentDate';
 
-export const CallCheckInTimeApi = () => {
-  // console.log('token 1',global.token)
+export const CallCheckInTimeApi = async() => {
+  const token= await getToken();
+  console.log('Token 1',token);
   var time = moment().format();
-  //   console.log('calling check IN api Token Here',token)
 
-  CheckInApiCall(time);
+  CheckInApiCall(time,token);
 
-  // setTimeout(() => {
-  // }, 4000);
 };
 
 const CheckInApiCall = async (checkInTime, token) => {
   console.log('incomiing check IN Time', checkInTime);
-  // console.log("Token in CHeckIn APi ",token)
+  console.log('Token 2',token);
+
   // Check IN TIme For Home Screen
   var timeForHomeScreen = moment().utcOffset('').format('hh:mm A');
   setData('UserCheckInTime', timeForHomeScreen);
@@ -27,7 +26,9 @@ const CheckInApiCall = async (checkInTime, token) => {
   setData('UserExpCheckOutTime', ExpCheckOuttime);
   console.log('Usr Check IN time Saved in Async');
   try {
-    //   console.log('token in Try block',token)
+      console.log('token 3 in Try block',token)
+      console.log('CheckIn Time With Token',checkInTime);
+
     const checkINTimeJSON = JSON.stringify({
       checkInType: 'string',
       checkInTime: checkInTime,
@@ -36,33 +37,33 @@ const CheckInApiCall = async (checkInTime, token) => {
     let response = await axios.post(
       '/api/v1/attendances',
       checkINTimeJSON,
-      //   {
-      //     headers: {Authorization: `Bearer ${token}`},
-      //   },
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        },
     );
     setData('CheckInID', response?.data?.id);
     console.log('Check In Id :', response.data.id);
     console.log('Check In APi Response :', response.data);
-    // CallAttendanceApi();
+    CallAttendanceApi(token);
 
   } catch (error) {
     console.log(error, 'error in CHeck IN TIme ');
   }
 };
 
-// const CallAttendanceApi = async () => {
-//   try {
-//     let response = await axios.get(
-//       '/api/v1/attendances',
+const CallAttendanceApi = async (token) => {
+  try {
+    let response = await axios.get(
+      '/api/v1/attendances',
 
-//       //   {
-//       //     headers: {Authorization: `Bearer ${token}`},
-//       //   },
-//     );
-//     setData('Attendance', response?.data?.slice(-7).reverse());
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        },
+    );
+    setData('Attendance', response?.data?.slice(-7).reverse());
 
-//     console.log('Attendance  APi Response :', response.data);
-//   } catch (error) {
-//     console.log(error, 'error in Getting  Attendance ');
-//   }
-// };
+    console.log('Attendance  APi Response :', response.data);
+  } catch (error) {
+    console.log(error, 'error in Getting  Attendance ');
+  }
+};

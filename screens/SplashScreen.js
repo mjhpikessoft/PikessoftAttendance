@@ -1,20 +1,24 @@
-import React from 'react';
+import React,{useState} from 'react';
 import {
   StyleSheet,
   Text,
   View,
   Image,
   Dimensions,
-  StatusBar,
+  ImageBackground
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useEffect} from 'react';
+import Loader from '../components/Loader';
 const SplashScreen = ({navigation}) => {
   useEffect(() => {
+    setLoading(true)
     setTimeout(() => {
       getLoggedInData();
+      setLoading(false)
     }, 3000);
   }, []);
+ 
   const getLoggedInData = () => {
     try {
       AsyncStorage.getItem('LoggedINUser').then(value => {
@@ -31,41 +35,25 @@ const SplashScreen = ({navigation}) => {
       console.warn('No Loggin user found', error);
     }
   };
+const [loading,setLoading]=useState(false)
+const image = { uri: "https://images.unsplash.com/photo-1537420327992-d6e192287183?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxleHBsb3JlLWZlZWR8Mnx8fGVufDB8fHx8&w=1000&q=80" };
 
   return (
-    <View style={{flex: 1, alignItems: 'center', backgroundColor: '#ffff'}}>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: 'white',
-        }}>
-        <StatusBar backgroundColor="white" barStyle="dark-content" />
-
-        <Image
-          style={{width: 60, height: 60}}
-          source={require('../assets/rush.png')}
-        />
-        <Text
-          style={{
-            fontSize: 28,
-            fontWeight: '500',
-            color: '#263238',
-            marginTop: 12,
-            fontFamily: 'Poppins',
-          }}>
-          Time Attendence
-        </Text>
-      </View>
-      <Image
-        style={{width: 158, height: 60, position: 'absolute', bottom: 100}}
-        source={require('../assets/logo2.png')}
-      />
+    <View style={{flex: 1,}}>
+ 
+     <ImageBackground source={image} resizeMode="cover" style={styles.image}>
+     {loading?<Loader />:null} 
+    </ImageBackground>
     </View>
   );
 };
 
 export default SplashScreen;
 const {width, height} = Dimensions.get('screen');
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  image: {
+    flex: 1,
+    justifyContent: "center"
+  },
+});
+

@@ -7,7 +7,7 @@ import {
   Dimensions,
   TouchableOpacity,
 } from 'react-native';
-import CheckInButton from './CheckInButton';
+// import CheckInButton from './CheckInButton';
 import {
   OPEN_SANS_REGULAR,
   PROXIMA_NOVA_ALT_BOLD,

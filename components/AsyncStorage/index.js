@@ -39,28 +39,19 @@ export const RemoveUserData = async () => {
   }
 };
 
-export const getToken = () => {
-  AsyncStorage.getItem('LoggedINUser').then(value => {
-    global.token = JSON.parse(value)?.Token;
 
-    // if (value != null) {
-    //     global.token= JSON.parse(value)?.Token
-    //       console.log('global token in get Token',global.token)
-    //   } else {
-    //     console.log('not Token Found');
-    //   }
-  });
-};
-// const getToken=()=> {
-//   try {
-//       const token=AsyncStorage.getItem("LoggedINUser").then(token=>{return token});
-//       return token;
-//   } catch (error) {
-//       console.log('error in getting Token',error)
-//   }
-//   // AsyncStorage.getItem('CheckInID').then(value => {
-//   //   console.log('getting user ID',JSON.parse(value))
-//   //   let CheckInID='12'
-//   //     return CheckInID;
-//   //     }).catch((e)=>console.log('error:***',e))
-//     }
+export const getToken= async()=> {
+  try {
+      // const value= await AsyncStorage.getItem("LoggedINUser");
+      const token= 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im11amFoaWQuYWxpQHBpa2Vzc29mdC5jb20iLCJpZCI6MywiaWF0IjoxNjM5Mzc4NDIzfQ.FwnZ6TCr0_9dSUi1_rn_s6bdgslnYpJb_r7chN3iuLU'
+
+      if(token!=null){
+        return token
+      }
+     else{
+       console.log('error in fetching Token Form Async')
+     }
+  } catch (error) {
+      console.log('error in getting Token',error)
+  }
+}

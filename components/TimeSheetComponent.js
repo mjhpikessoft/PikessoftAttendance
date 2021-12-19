@@ -38,6 +38,7 @@ const TimeSheetComponent = ({checkin, checkout}) => {
 
   return (
     <View style={{flex: 1}}>
+ 
       <View
         style={{
           borderRadius: 10,
@@ -82,25 +83,37 @@ const TimeSheetComponent = ({checkin, checkout}) => {
             <Text style={{fontSize: 10, fontWeight: '700', color: '#111828'}}>
               {checkInTime}
             </Text>
-            <Text
+            {checkout===null? <Text
               style={{
                 fontSize: 10,
                 fontWeight: '700',
                 color: '#111828',
                 paddingHorizontal: 22,
               }}>
-              {checkOutTime}
-            </Text>
+             --
+            </Text>:
+                <Text
+                style={{
+                  fontSize: 10,
+                  fontWeight: '700',
+                  color: '#111828',
+                  paddingHorizontal: 22,
+                }}>
+                {checkOutTime}
+              </Text>}
+        
 
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: '700',
-                color: '#111828',
-                paddingLeft: 12,
-              }}>
-              {workingHrs}
-            </Text>
+               <Text
+               style={{
+                 fontSize: 10,
+                 fontWeight: '700',
+                 color: '#111828',
+                 paddingLeft: 12,
+               }}>
+               {workingHrs}
+             </Text>
+         
+         
           </View>
         </View>
       </View>

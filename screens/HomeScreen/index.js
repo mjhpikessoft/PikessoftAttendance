@@ -28,6 +28,9 @@ import {CallCheckOutTimeApi} from '../../components/checkoutTime/utils';
 import {removeData} from '../../components/AsyncStorage';
 import CheckInSuccessModal from '../../components/CheckInSuccessModal';
 import NoApiResponse from '../../components/NoApiResponse';
+import Geolocation from '@react-native-community/geolocation';
+import {color} from 'react-native-reanimated';
+
 const HomeScreen = ({navigation}) => {
   const [refresh, setRefresh] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -39,6 +42,7 @@ const HomeScreen = ({navigation}) => {
   const [IsStart, setIsStart] = useState(false);
   const [checkInModal, setCheckInModal] = useState(false);
   const [isCheckout, setIsCheckout] = useState(false);
+  const [durringCurrentTime, setDurringCurrentTime] = useState('');
   const [ApiResponse, setApiResponse] = useState({
     profileUri: '',
     name: '',
@@ -46,17 +50,28 @@ const HomeScreen = ({navigation}) => {
     gender: '',
     Age: 0,
   });
+  const [currentAddress, setCurrentAddress] = useState({
+    currentLatitude: 0,
+    currentLongitude: 0,
+  });
+
   useEffect(() => {
     getAttendance();
-  }, [loading]);
+  }, [loading, isCheckout]);
   useEffect(() => {
+    getCheckInTIme();
+    getExpCheckOutTime();
+  }, [checkInModal]);
+  useEffect(() => {
+    getUserCurrentLocation();
     setLoading(true);
     createChannels();
     setTimeout(() => {
-      getExpCheckOutTime();
       getLoggedInData();
-      getCheckInTIme();
 
+      var currentTime = moment();
+      var ctime = moment(currentTime).format('HH:mm A');
+      setDurringCurrentTime(ctime);
       setLoading(false);
     }, 4000);
     if (checInTimeFromAsync && !Timer) {
@@ -83,6 +98,9 @@ const HomeScreen = ({navigation}) => {
     PushNotification.createChannel({
       channelId: 'test-channel',
       channelName: 'Test Channel',
+      playSound: true,
+      vibrate: true,
+      soundName: 'ring_bell.mp3',
     });
   };
   const handleNotification = () => {
@@ -91,10 +109,47 @@ const HomeScreen = ({navigation}) => {
       title: 'Check Out Reminder !',
       message: 'Now you can CheckOut',
       color: 'green',
-      date: new Date(Date.now() + 20 * 1000),
+      priority: 'max',
+      importance: 'max',
+      visibility: 'public',
+      autoCancel: false,
+
+      date: new Date(Date.now() + 10 * 1000),
       // date:new Date(Date.now()+1*3.6e+6),
       allowWhileIdle: true,
+      soundName: 'ring_bell.mp3',
+
+      playSound: true,
+      vibrate: true,
     });
+  };
+  const getUserCurrentLocation = () => {
+    let latitude, longitude;
+
+    Geolocation.getCurrentPosition(
+      info => {
+        const {coords} = info;
+
+        latitude = coords.latitude;
+        longitude = coords.longitude;
+
+        console.log('latitude : ', latitude);
+        console.log('longitude  : ', longitude);
+
+        setCurrentAddress({
+          currentLatitude: latitude,
+          currentLongitude: longitude,
+        });
+
+        // getUserCurrentAddress(latitude, longitude)
+      },
+      error => console.log(error),
+      {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 10000,
+      },
+    );
   };
   const getLoggedInData = () => {
     try {
@@ -166,21 +221,20 @@ const HomeScreen = ({navigation}) => {
   };
   return (
     <View style={{flex: 1, backgroundColor: '#FFFF'}}>
-      {ApiResponse.name.length > 0 ? (
+      <View
+        style={[
+          styles.innerContainer,
+          {
+            shadowColor: 'black',
+            elevation: 9,
+          },
+        ]}>
+        {loading ? <Loader /> : null}
         <View
-          style={[
-            styles.innerContainer,
-            {
-              shadowColor: 'black',
-              elevation: 9,
-            },
-          ]}>
-          {loading ? <Loader /> : null}
-          <View
-            style={{paddingTop: 20}}
-            // style={styles.dateButton}
-          >
-            {/* <Text
+          style={{paddingTop: 20}}
+          // style={styles.dateButton}
+        >
+          {/* <Text
             style={{
               fontSize: 12,
               fontWeight: '700',
@@ -190,73 +244,72 @@ const HomeScreen = ({navigation}) => {
          
           
           </Text> */}
-          </View>
-          <CheckInSuccessModal
-            checkInModal={checkInModal}
-            setCheckInModal={setCheckInModal}
-          />
+        </View>
+        <CheckInSuccessModal
+          checkInModal={checkInModal}
+          setCheckInModal={setCheckInModal}
+        />
 
-          <EmployProfileComponenet
-            name={ApiResponse.name ? ApiResponse.name : 'Sample Name'}
-            designation={
-              ApiResponse.desgnation
-                ? ApiResponse.desgnation
-                : 'Sapmle Desegnation'
-            }
-            gender={ApiResponse.gender ? ApiResponse.gender : 'Sapmle'}
-            age={ApiResponse.Age}
-            profileUri={
-              ApiResponse.profileUri
-                ? ApiResponse.profileUri
-                : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
-            }
-          />
+        <EmployProfileComponenet
+          name={ApiResponse.name ? ApiResponse.name : 'Sample Name'}
+          designation={
+            ApiResponse.desgnation
+              ? ApiResponse.desgnation
+              : 'Sapmle Desegnation'
+          }
+          gender={ApiResponse.gender ? ApiResponse.gender : 'Sapmle'}
+          age={ApiResponse.Age}
+          profileUri={
+            ApiResponse.profileUri
+              ? ApiResponse.profileUri
+              : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+          }
+        />
 
-          <View>
-            {isCheckout ? (
-              <View
-                style={{flexDirection: 'row', justifyContent: 'space-evenly'}}>
-                <CheckInTime checkinTime={'---'} action="Check In" />
+        <View>
+          {isCheckout ? (
+            <View
+              style={{flexDirection: 'row', justifyContent: 'space-evenly'}}>
+              <CheckInTime checkinTime={'---'} action="Check In" />
 
-                <WorkingTimer
-                  StartTime={false}
-                  workingHrs={'---'}
-                  IsStart={IsStart}
-                  action="Working time"
-                />
+              <WorkingTimer
+                StartTime={false}
+                workingHrs={'---'}
+                IsStart={IsStart}
+                action="Working time"
+              />
 
-                <ExpCheckOutTime checOutTime={'---'} action="Exp. Check out" />
-              </View>
-            ) : (
-              <View
-                style={{flexDirection: 'row', justifyContent: 'space-evenly'}}>
-                {/* <Text>{checInTimeFromAsync}</Text> */}
-                <CheckInTime
-                  checkinTime={
-                    checInTimeFromAsync ? checInTimeFromAsync : '---'
-                  }
-                  action="Check In"
-                />
+              <ExpCheckOutTime checOutTime={'---'} action="Exp. Check out" />
+            </View>
+          ) : (
+            <View
+              style={{flexDirection: 'row', justifyContent: 'space-evenly'}}>
+              {/* <Text>{checInTimeFromAsync}</Text> */}
+              <CheckInTime
+                checkinTime={checInTimeFromAsync ? checInTimeFromAsync : '---'}
+                action="Check In"
+              />
 
-                <WorkingTimer
-                  StartTime={Timer}
-                  workingHrs={resumeTime}
-                  IsStart={IsStart}
-                  action="Working time"
-                />
+              <WorkingTimer
+                StartTime={Timer}
+                workingHrs={resumeTime}
+                IsStart={IsStart}
+                action="Working time"
+              />
 
-                <ExpCheckOutTime
-                  checOutTime={
-                    ExpCheckOutTimeFromAsync ? ExpCheckOutTimeFromAsync : '---'
-                  }
-                  action="Exp. Check out"
-                />
-              </View>
-            )}
-          </View>
+              <ExpCheckOutTime
+                checOutTime={
+                  ExpCheckOutTimeFromAsync ? ExpCheckOutTimeFromAsync : '---'
+                }
+                action="Exp. Check out"
+              />
+            </View>
+          )}
+        </View>
 
-          <View style={styles.button}>
-            {checInTimeFromAsync ? (
+        <View style={styles.button}>
+          {
+            checInTimeFromAsync ? (
               <TouchableOpacity
                 disabled={isCheckout}
                 onPress={() => {
@@ -265,6 +318,7 @@ const HomeScreen = ({navigation}) => {
                   setTimeout(() => {
                     setIsCheckout(true);
                     setLoading(false);
+                    getAttendance();
                     removeData('UserCheckInTime');
                     removeData('UserExpCheckOutTime');
                   }, 4000);
@@ -273,79 +327,126 @@ const HomeScreen = ({navigation}) => {
                   styles.signIn,
                   styles.shadow,
                   {
-                    //   borderWidth: 1,
+                    borderColor: isCheckout ? '#E6E7EB' : '#FF3B30',
+                    borderWidth: 1,
                     margin: 16,
                     // backgroundColor: 'red',
-                    backgroundColor: isCheckout ? '#E6E7EB' : '#FFC727',
+                    backgroundColor: isCheckout ? '#E6E7EB' : '#FFCCC9',
                   },
                 ]}>
-                <Text style={styles.textSign}>Check Out</Text>
+                <Text
+                  style={[
+                    styles.textSign,
+                    {color: isCheckout ? 'gray' : '#FF3B30'},
+                  ]}>
+                  Check Out
+                </Text>
               </TouchableOpacity>
             ) : (
+              // currentAddress.currentLatitude === 31.469413
+              // &&
+              //   currentAddress.currentLongitude === 74.2691429
+              //   ? (
               <TouchableOpacity
+                disabled={
+                  durringCurrentTime > '03:00:PM' &&
+                  durringCurrentTime < '10:00:AM'
+                    ? true
+                    : false
+                }
                 onPress={() => {
-                  CallCheckInTimeApi();
-                  getCheckInTIme();
-                  getExpCheckOutTime();
-                  setTimer(true);
-                  setCheckInModal(true);
-                  // handleNotification();
+                  // CallCheckInTimeApi();
+                  // getCheckInTIme();
+                  // getExpCheckOutTime();
+                  // setTimer(true);
+                  // setCheckInModal(true);
+                  handleNotification();
                 }}
                 style={[
                   styles.signIn,
                   styles.shadow,
                   {
-                    borderColor: '#FFC727',
+                    borderColor:
+                      durringCurrentTime > '03:00:PM' &&
+                      durringCurrentTime < '10:00:AM'
+                        ? '#E6E7EB'
+                        : '#FFC727',
                     borderWidth: 1,
                     margin: 16,
-                    backgroundColor: '#FFC727',
+                    backgroundColor:
+                      durringCurrentTime > '03:00:PM' &&
+                      durringCurrentTime < '10:00:AM'
+                        ? '#E6E7EB'
+                        : '#FFC727',
                   },
                 ]}>
                 <Text style={styles.textSign}>Check In</Text>
               </TouchableOpacity>
-            )}
-          </View>
+            )
+            // ) : (
+            //   <TouchableOpacity
+            //     style={[
+            //       styles.signIn,
+            //       styles.shadow,
+            //       {
+            //         borderColor: '#FFC727',
+            //         borderWidth: 1,
+            //         margin: 16,
+            //         backgroundColor: '#FFC727',
+            //       },
+            //     ]}>
+            //     <Text style={styles.textSign}>Not In Office</Text>
+            //   </TouchableOpacity>
+            // )
+          }
         </View>
-      ) : (
-        <NoApiResponse />
-      )}
-      {ApiResponse.name.length > 0 ? (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refresh}
-              onRefresh={handleRefresh}
-              colors={['blue', 'red']}
-              progressBackgroundColor={'white'}
-            />
-          }>
-          <View
-            style={{
-              flexDirection: 'row',
-              marginVertical: 25,
-              justifyContent: 'space-between',
-              paddingHorizontal: 20,
-            }}>
-            <Text style={{fontWeight: '500', fontSize: 14, color: '#263238'}}>
-              Last 7 days timesheet
-            </Text>
-            <TouchableOpacity style={{flexDirection: 'row'}}>
-              <Text style={{fontWeight: '500', fontSize: 14, color: '#263238'}}>
-                See All
-              </Text>
-              <Image
-                style={{
-                  width: 15,
-                  height: 10,
-                  alignSelf: 'center',
-                  marginLeft: 10,
-                }}
-                source={require('../../assets/RightArrow.png')}
-              />
-            </TouchableOpacity>
-          </View>
+      </View>
 
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refresh}
+            onRefresh={handleRefresh}
+            colors={['blue', 'red']}
+            progressBackgroundColor={'white'}
+          />
+        }>
+        <View
+          style={{
+            flexDirection: 'row',
+            marginVertical: 25,
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+          }}>
+          <Text style={{fontWeight: '500', fontSize: 14, color: '#263238'}}>
+            Last 7 days timesheet
+          </Text>
+          <TouchableOpacity style={{flexDirection: 'row'}}>
+            <Text style={{fontWeight: '500', fontSize: 14, color: '#263238'}}>
+              See All
+            </Text>
+            <Image
+              style={{
+                width: 15,
+                height: 10,
+                alignSelf: 'center',
+                marginLeft: 10,
+              }}
+              source={require('../../assets/RightArrow.png')}
+            />
+          </TouchableOpacity>
+        </View>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          <Text
+            style={{
+              fontSize: 10,
+              marginLeft: width * 0.1,
+              fontWeight: '500',
+              color: '#263238',
+            }}>
+            Day & Date
+          </Text>
           <View
             style={{
               flexDirection: 'row',
@@ -368,17 +469,17 @@ const HomeScreen = ({navigation}) => {
               Working hrs
             </Text>
           </View>
+        </View>
 
-          {attendanceFromAsync.map(item => (
-            <TimeSheetComponent
-              key={item.id}
-              checkin={item?.checkInTime}
-              checkout={item?.checkOutTime}
-              date={item?.checkInTime}
-            />
-          ))}
-        </ScrollView>
-      ) : null}
+        {attendanceFromAsync.map(item => (
+          <TimeSheetComponent
+            key={item.id}
+            checkin={item?.checkInTime}
+            checkout={item?.checkOutTime}
+            date={item?.checkInTime}
+          />
+        ))}
+      </ScrollView>
     </View>
   );
 };

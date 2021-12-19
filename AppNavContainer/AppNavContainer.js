@@ -57,7 +57,6 @@ function StackNavigator({navigation}) {
         name="Spashscreen"
         component={SplashScreen}
         options={{
-          // title: 'SignIn Screen'
           header: () => null,
         }}
       />

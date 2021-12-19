@@ -1,5 +1,6 @@
 import axios from '../../baseUrl/axios';
 import moment from 'moment';
+import { getToken } from '../AsyncStorage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { getToken } from "../AsyncStorage";
 import {setData} from '../AsyncStorage';
@@ -18,20 +19,22 @@ const getcheckInId = () => {
 };
 
 export const CallCheckOutTimeApi = async () => {
-  const iD = await getcheckInId();
-  console.log('id ****', iD);
+  const checkInId = await getcheckInId();
+  console.log('id ****', checkInId);
   var outtime = moment().format();
-
-  //   console.log('calling check IN api Token Here',token)
-  console.log('checkIn ID', iD);
+  console.log('checkIn ID', checkInId);
+  const token= await getToken();
+  console.log('token In Chekout Api',token)
   setTimeout(() => {
-    CheckOutApiCall(outtime, iD);
+    CheckOutApiCall(outtime, checkInId,token);
   }, 2000);
 };
 
-const CheckOutApiCall = async (checkOutTime, iD) => {
+const CheckOutApiCall = async (checkOutTime, checkInId,token) => {
   console.log('incomiing check Out Time', checkOutTime);
-  // console.log("Token in CHeckout APi ",token)
+  console.log("Token with ID ",token)
+  console.log('check in Id ',checkInId)
+
   // Check out TIme For Home Screen
   // var timeForHomeScreen = moment().utcOffset('').format('hh:mm a');
   // setData('UserCheckInTime',timeForHomeScreen)
@@ -43,32 +46,36 @@ const CheckOutApiCall = async (checkOutTime, iD) => {
       checkOutTime: checkOutTime,
     });
     console.log('check Out Time in try block', checkOutTimeJSON);
+    console.log("Token in try block with  ID ",token)
+    console.log('check in Id in try block ',checkInId)
     let response = await axios.patch(
-      `/api/v1/attendances/${iD}`,
+      `/api/v1/attendances/${checkInId}`,
       checkOutTimeJSON,
-      //   {
-      //     headers: {Authorization: `Bearer ${token}`},
-      //   },
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        },
     );
     console.log('Check Out APi Response :', response.data);
-    CallAttendanceApi();
+    CallAttendanceApi(token);
   } catch (error) {
     console.log(error, 'error in CHeck Out TIme ');
   }
 };
 
-const CallAttendanceApi = async () => {
+const CallAttendanceApi = async (token) => {
   try {
+    console.log("Token in get Attendance APi ",token)
+  
     let response = await axios.get(
       '/api/v1/attendances',
 
-      //   {
-      //     headers: {Authorization: `Bearer ${token}`},
-      //   },
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        },
     );
     setData('Attendance', response?.data?.slice(-7).reverse());
     console.log('Attendance  On Chekout  :', response.data);
-  } catch (error) {
+ } catch (error) {
     console.log(error, 'error in Getting  Attendance ');
   }
 };

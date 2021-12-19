@@ -3,7 +3,11 @@ import {View, Alert} from 'react-native';
 import AppNavContainer from './AppNavContainer/AppNavContainer';
 import {useNetInfo} from '@react-native-community/netinfo';
 import NetInfo from '@react-native-community/netinfo';
+import SplashScreen from 'react-native-splash-screen';
 const App = ({navigation}) => {
+  useEffect(()=>{
+    SplashScreen.hide()
+  },[])
   const netinfo = useNetInfo();
   useEffect(() => {
     const unsub = NetInfo.addEventListener(state => {
